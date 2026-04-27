@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: backend
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASS}
+  jpa:
+    generate-ddl: true
+    open-in-view: false
+
+jwt:
+  secret: ${JWT_SECRET:dGhpcyBpcyBhIHNlY3JldCBrZXkgdGhhdCBzaG91bGQgYmUgcmVwbGFjZWQ=}
+#  Expiration units - ms
+#  ┌──────────────────┬───────────┐
+#  │ Desired lifetime │   Value   │
+#  ├──────────────────┼───────────┤
+#  │ 1 hour           │ 3600000   │
+#  ├──────────────────┼───────────┤
+#  │ 12 hours         │ 43200000  │
+#  ├──────────────────┼───────────┤
+#  │ 24 hours         │ 86400000  │
+#  ├──────────────────┼───────────┤
+#  │ 7 days           │ 604800000 │
+#  └──────────────────┴───────────┘
+  expiration: 86400000
+
+admin:
+  username: ${DEFAULT_ADMIN_USERNAME}
+  password: ${DEFAULT_ADMIN_PASS}
+
+analyzer:
+  payment-warning-period: 7
