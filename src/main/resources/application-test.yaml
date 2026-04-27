@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: backend-test
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:tc:postgresql:16:///GorillaTest
+    username: postgres
+    password: testtesttest
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    open-in-view: false
+
+jwt:
+  secret: ${JWT_SECRET:dGhpcyBpcyBhIHNlY3JldCBrZXkgdGhhdCBzaG91bGQgYmUgcmVwbGFjZWQ=}
+  expiration: 86400000
+
+analyzer:
+  payment-warning-period: 7
