@@ -13,7 +13,7 @@ import static ru.gorilla.gim.backend.util.AccountWarningLevel.WARNING;
 @Component
 public class PayDateAnalyzer implements AccountAnalyzer {
 
-    @Value("${analyzer.payment-warning-period")
+    @Value("${analyzer.payment-warning-period}")
     private String paymentWarningPeriod;
 
     @Override
@@ -21,10 +21,11 @@ public class PayDateAnalyzer implements AccountAnalyzer {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime paidUntil = account.getPaidUntil();
 
-        if (paidUntil != null){
-            if (paidUntil.isBefore(now) &&
-                    ChronoUnit.DAYS.between(now, paidUntil) <= Long.parseLong(paymentWarningPeriod)) {
-                return new AnalyzerWarning(INFO, "У пользователя скоро закончится абонемент!");
+        if (paidUntil != null) {
+            if (!paidUntil.isBefore(now)) {
+                if (ChronoUnit.DAYS.between(now, paidUntil) <= Long.parseLong(paymentWarningPeriod)) {
+                    return new AnalyzerWarning(INFO, "У пользователя скоро закончится абонемент!");
+                } else return null;
             } else {
                 return new AnalyzerWarning(WARNING, "У пользователя закончился абонемент!");
             }
