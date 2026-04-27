@@ -13,6 +13,10 @@ import ru.gorilla.gim.backend.util.CommonUnits;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+
 import java.util.List;
 import java.util.Map;
 
@@ -26,6 +30,11 @@ public class AccountController implements AccountControllerApi {
     @GetMapping
     public ResponseEntity<List<AccountDto>> findAll() {
         return ResponseEntity.ok(accountService.findAll());
+    }
+
+    @GetMapping("/page")
+    public ResponseEntity<Page<AccountDto>> findPage(@PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(accountService.findPage(pageable));
     }
 
     @GetMapping("/{id}")

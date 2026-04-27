@@ -20,7 +20,7 @@ public class AccountEntity extends AbstractEntity {
     private String secondName;
     @Column(name = "last_name")
     private String lastName;
-    @Column(name = "card_number")
+    @Column(name = "card_number", unique = true)
     private String cardNumber;
     @Column(name = "is_blocked")
     private Boolean isBlocked;

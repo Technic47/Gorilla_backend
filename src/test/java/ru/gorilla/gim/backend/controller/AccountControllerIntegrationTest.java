@@ -50,6 +50,59 @@ class AccountControllerIntegrationTest extends BaseIntegrationTest {
         }
     }
 
+    // ── findPage ──────────────────────────────────────────────────────────────
+
+    @Test
+    void findPage_defaultParams_returnsPageWithCreatedAccount() {
+        restTestClient
+                .get()
+                .uri("/account/page")
+                .header("Authorization", "Bearer " + adminToken)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.content").isArray()
+                .jsonPath("$.content[?(@.id == " + createdId + ")]").exists()
+                .jsonPath("$.totalElements").isNumber()
+                .jsonPath("$.size").isEqualTo(10)
+                .jsonPath("$.number").isEqualTo(0);
+    }
+
+    @Test
+    void findPage_customSizeAndPage_returnsCorrectPage() {
+        restTestClient
+                .get()
+                .uri("/account/page?page=0&size=1")
+                .header("Authorization", "Bearer " + adminToken)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.content").isArray()
+                .jsonPath("$.size").isEqualTo(1)
+                .jsonPath("$.number").isEqualTo(0);
+    }
+
+    @Test
+    void findPage_sortByLastName_returnsSortedContent() {
+        restTestClient
+                .get()
+                .uri("/account/page?sort=lastName,asc")
+                .header("Authorization", "Bearer " + adminToken)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.content").isArray();
+    }
+
+    @Test
+    void findPage_unauthenticated_returnsUnauthorized() {
+        restTestClient
+                .get()
+                .uri("/account/page")
+                .exchange()
+                .expectStatus().isUnauthorized();
+    }
+
     // ── findAll ───────────────────────────────────────────────────────────────
 
     @Test

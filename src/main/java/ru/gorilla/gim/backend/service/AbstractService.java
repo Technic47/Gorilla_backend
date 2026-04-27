@@ -10,6 +10,9 @@ import ru.gorilla.gim.backend.dto.AbstractDto;
 import ru.gorilla.gim.backend.entity.AbstractEntity;
 import ru.gorilla.gim.backend.mapper.AbstractMapper;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -76,6 +79,10 @@ public abstract class AbstractService
 
     public DTO findById(Long id) {
         return entityMapper.entityToDto(findEntityById(id));
+    }
+
+    public Page<DTO> findPage(Pageable pageable) {
+        return repository.findAll(pageable).map(entityMapper::entityToDto);
     }
 
     public DTO patchUpdate(Map<String, Object> fields) {

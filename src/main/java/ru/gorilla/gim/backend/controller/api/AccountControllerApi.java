@@ -2,6 +2,8 @@ package ru.gorilla.gim.backend.controller.api;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -10,6 +12,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import ru.gorilla.gim.backend.dto.AccountDto;
 
@@ -27,6 +31,30 @@ public interface AccountControllerApi {
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
     })
     ResponseEntity<List<AccountDto>> findAll();
+
+    @Operation(
+            summary = "Get accounts page",
+            description = "Returns a paginated list of accounts. " +
+                    "Supports sorting by any AccountDto field. " +
+                    "Multiple `sort` parameters are allowed (e.g. `sort=lastName,asc&sort=firstName,asc`)."
+    )
+    @Parameters({
+            @Parameter(name = "page", in = ParameterIn.QUERY, description = "Page number, 0-based",
+                    schema = @Schema(type = "integer", defaultValue = "0")),
+            @Parameter(name = "size", in = ParameterIn.QUERY, description = "Number of items per page",
+                    schema = @Schema(type = "integer", defaultValue = "10")),
+            @Parameter(name = "sort", in = ParameterIn.QUERY,
+                    description = "Sort field and direction: `field,asc` or `field,desc` (e.g. `lastName,asc`)",
+                    schema = @Schema(type = "string"), example = "lastName,asc")
+    })
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Page retrieved successfully",
+                    content = @Content(schema = @Schema(implementation = AccountDto.class))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+    })
+    ResponseEntity<Page<AccountDto>> findPage(
+            @Parameter(hidden = true) Pageable pageable
+    );
 
     @Operation(summary = "Get account by ID", description = "Returns a single account by its ID")
     @ApiResponses({
