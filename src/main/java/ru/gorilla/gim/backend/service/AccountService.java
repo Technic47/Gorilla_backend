@@ -6,11 +6,21 @@ import ru.gorilla.gim.backend.entity.AccountEntity;
 import ru.gorilla.gim.backend.mapper.AccountMapper;
 import ru.gorilla.gim.backend.repository.AccountRepository;
 
+import java.time.LocalDateTime;
+
 @Service
 public class AccountService extends AbstractService<
         AccountEntity, AccountDto, AccountRepository, AccountMapper> {
 
     protected AccountService(AccountRepository repository, AccountMapper mapper) {
         super(repository, mapper);
+    }
+
+    public AccountDto updatePaidUntil(Long id, LocalDateTime paidUntil) {
+        AccountEntity entity = repository.findById(id).orElse(null);
+        if (entity == null) return null;
+        entity.setPaidUntil(paidUntil);
+        entity.setUpdated(LocalDateTime.now());
+        return entityMapper.entityToDto(repository.saveAndFlush(entity));
     }
 }

@@ -61,7 +61,7 @@ public class AccountController implements AccountControllerApi {
         } catch (DateTimeParseException e) {
             throw new IllegalArgumentException("Cannot parse date: " + newDate + ". Expected format: " + CommonUnits.DATE_FORMAT);
         }
-        AccountDto dto = accountService.patchUpdate(id, Map.of("paidUntil", parsedDate));
+        AccountDto dto = accountService.updatePaidUntil(id, parsedDate);
         return dto != null ? ResponseEntity.ok(dto) : ResponseEntity.notFound().build();
     }
 
