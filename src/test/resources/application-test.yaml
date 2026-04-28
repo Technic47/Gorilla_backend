@@ -1,4 +1,1 @@
-minio:
-  url: http://localhost:9000
-  username: minioadmin
-  password: minioadmin
+# MinIO properties are provided dynamically via BaseIntegrationTest.configureProperties()

@@ -25,9 +25,10 @@
         <okhttp3.version>5.0.0-alpha.14</okhttp3.version>
 
 <!--        test-->
-        <junit-jupiter.conteiner.version>1.21.4</junit-jupiter.conteiner.version>
         <spring-boot-testcontainers.version>4.1.0-RC1</spring-boot-testcontainers.version>
+        <junit-jupiter.conteiner.version>1.21.4</junit-jupiter.conteiner.version>
         <postgresql.conteiner.version>1.21.4</postgresql.conteiner.version>
+        <minio.conteiner.version>1.21.4</minio.conteiner.version>
     </properties>
 
     <dependencies>
@@ -137,6 +138,12 @@
             <groupId>org.testcontainers</groupId>
             <artifactId>postgresql</artifactId>
             <version>${postgresql.conteiner.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>minio</artifactId>
+            <version>${minio.conteiner.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

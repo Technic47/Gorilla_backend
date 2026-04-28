@@ -3,6 +3,7 @@ package ru.gorilla.gim.backend.config;
 import io.minio.BucketExistsArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
+import io.minio.SetBucketPolicyArgs;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -63,10 +64,27 @@ public class AppInitializer implements ApplicationRunner {
             } else {
                 log.info("Default bucket already exists");
             }
+            String policy = String.format("""
+                    {
+                      "Version": "2012-10-17",
+                      "Statement": [{
+                        "Effect": "Allow",
+                        "Principal": {"AWS": ["*"]},
+                        "Action": ["s3:GetObject"],
+                        "Resource": ["arn:aws:s3:::%s/*"]
+                      }]
+                    }
+                    """, AVATAR_BUCKET);
+            minioClient.setBucketPolicy(
+                    SetBucketPolicyArgs.builder()
+                            .bucket(AVATAR_BUCKET)
+                            .config(policy)
+                            .build()
+            );
+            log.info("Bucket public-read policy applied");
         } catch (Exception e) {
             log.error("Default bucket check failed!");
             throw new RuntimeException("Default bucket check failed!");
         }
-
     }
 }

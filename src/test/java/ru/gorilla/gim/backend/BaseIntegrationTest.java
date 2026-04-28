@@ -7,6 +7,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.client.RestTestClient;
+import org.testcontainers.containers.MinIOContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import ru.gorilla.gim.backend.dto.AuthResponse;
@@ -34,8 +35,11 @@ public abstract class BaseIntegrationTest {
             .withUsername("postgres")
             .withPassword("testtesttest");
 
+    static final MinIOContainer minio = new MinIOContainer("minio/minio:latest");
+
     static {
         postgres.start();
+        minio.start();
     }
 
     @DynamicPropertySource
@@ -43,6 +47,9 @@ public abstract class BaseIntegrationTest {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
+        registry.add("minio.url", minio::getS3URL);
+        registry.add("minio.username", minio::getUserName);
+        registry.add("minio.password", minio::getPassword);
     }
 
     @Autowired

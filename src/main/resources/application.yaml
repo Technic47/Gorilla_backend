@@ -38,3 +38,8 @@ minio:
   url: ${MINIO_URL}
   username: ${MINIO_USER}
   password: ${MINIO_PASS}
+
+demo:
+  data:
+    enable: ${DEMO_DATA_ENABLE:false}
+    amount: ${DEMO_DATA_AMOUNT:200}
