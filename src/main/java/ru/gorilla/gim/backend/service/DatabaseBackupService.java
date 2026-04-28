@@ -1,0 +1,128 @@
+package ru.gorilla.gim.backend.service;
+
+import io.minio.GetObjectArgs;
+import io.minio.MinioClient;
+import io.minio.PutObjectArgs;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.stream.Collectors;
+
+import static ru.gorilla.gim.backend.util.CommonUnits.DATE_FORMAT;
+import static ru.gorilla.gim.backend.util.CommonUnits.DB_BACKUP_BUCKET;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class DatabaseBackupService {
+
+    private static final long PART_SIZE = 10 * 1024 * 1024;
+
+    @Value("${spring.datasource.url}")
+    private String dbUrl;
+    @Value("${spring.datasource.username}")
+    private String dbUsername;
+    @Value("${db.container.name}")
+    private String dbContainerName;
+
+    private final MinioClient minioClient;
+
+    @Async
+    public void backup() {
+        log.info("Starting database backup");
+        try {
+            String objectName = "dump-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_FORMAT)) + ".sql";
+
+            ProcessBuilder pb = new ProcessBuilder(
+                    "docker", "exec", "-i", dbContainerName,
+                    "pg_dump", "-U", dbUsername, getDatabaseName()
+            );
+            Process process = pb.start();
+
+            try (InputStream inputStream = process.getInputStream()) {
+                minioClient.putObject(
+                        PutObjectArgs.builder()
+                                .bucket(DB_BACKUP_BUCKET)
+                                .object(objectName)
+                                .stream(inputStream, -1L, PART_SIZE)
+                                .contentType("application/sql")
+                                .build()
+                );
+            }
+
+            int exitCode = process.waitFor();
+            if (exitCode != 0) {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+                    String errorLog = reader.lines().collect(Collectors.joining("\n"));
+                    log.error("pg_dump failed (exit {}): {}", exitCode, errorLog);
+                }
+                throw new RuntimeException("Backup failed. See logs for details.");
+            }
+
+            log.info("Database backup finished successfully: {}", objectName);
+        } catch (Exception e) {
+            log.error("Critical error during backup: ", e);
+        }
+    }
+
+    @Async
+    public void restoreDataBase(String objectName) {
+        log.info("Starting database restore from: {}", objectName);
+        try {
+            ProcessBuilder pb = new ProcessBuilder(
+                    "docker", "exec", "-i", dbContainerName,
+                    "psql", "-U", dbUsername, "-d", getDatabaseName()
+            );
+            Process process = pb.start();
+
+            // Drain stderr concurrently to prevent pipe-buffer deadlock
+            StringBuilder stderr = new StringBuilder();
+            Thread stderrDrainer = new Thread(() -> {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+                    reader.lines().forEach(line -> stderr.append(line).append('\n'));
+                } catch (Exception ignored) {}
+            });
+            stderrDrainer.setDaemon(true);
+            stderrDrainer.start();
+
+            try (InputStream backupStream = minioClient.getObject(
+                    GetObjectArgs.builder()
+                            .bucket(DB_BACKUP_BUCKET)
+                            .object(objectName)
+                            .build());
+                 OutputStream processStdin = process.getOutputStream()) {
+                backupStream.transferTo(processStdin);
+            }
+
+            int exitCode = process.waitFor();
+            stderrDrainer.join(5_000);
+
+            if (exitCode != 0) {
+                log.error("psql restore failed (exit {}): {}", exitCode, stderr);
+                throw new RuntimeException("Restore failed. See logs for details.");
+            }
+
+            log.info("Database restore finished successfully from: {}", objectName);
+        } catch (Exception e) {
+            log.error("Critical error during restore: ", e);
+            throw new RuntimeException("Restore failed", e);
+        }
+    }
+
+    private String getDatabaseName() {
+        int lastSlash = dbUrl.lastIndexOf("/");
+        int questionMark = dbUrl.indexOf("?", lastSlash);
+        return questionMark != -1
+                ? dbUrl.substring(lastSlash + 1, questionMark)
+                : dbUrl.substring(lastSlash + 1);
+    }
+}

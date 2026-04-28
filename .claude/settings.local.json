@@ -4,7 +4,11 @@
       "Bash(mvn dependency:resolve -q)",
       "Bash(mvn dependency:tree -Dincludes=com.fasterxml.jackson*,tools.jackson*)",
       "Bash(xargs grep *)",
-      "Bash(mvn compile *)"
+      "Bash(mvn compile *)",
+      "Bash(jar tf *)",
+      "Bash(\"/c/Program Files/Eclipse Adoptium/jdk-21.0.7.6-hotspot/bin/jar\" tf /c/Users/Techn/.m2/repository/io/minio/minio/9.0.0/minio-9.0.0.jar)",
+      "PowerShell(& \"$env:JAVA_HOME\\\\bin\\\\jar.exe\" tf \"C:\\\\Users\\\\Techn\\\\.m2\\\\repository\\\\io\\\\minio\\\\minio\\\\9.0.0\\\\minio-9.0.0.jar\" | Select-String \"PutObjectArgs\")",
+      "PowerShell(Get-ChildItem *)"
     ]
   }
 }

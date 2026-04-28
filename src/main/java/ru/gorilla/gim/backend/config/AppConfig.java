@@ -13,6 +13,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.databind.ObjectMapper;
@@ -29,6 +31,8 @@ import static ru.gorilla.gim.backend.util.CommonUnits.DATE_FORMAT;
 import static tools.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 
 @Configuration
+@EnableAsync
+@EnableScheduling
 @ComponentScan("ru.gorilla.gim.backend")
 @EnableJpaRepositories("ru.gorilla.gim.backend.repository")
 @EntityScan("ru.gorilla.gim.backend.entity")

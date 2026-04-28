@@ -1,4 +1,4 @@
-package ru.gorilla.gim.backend.config;
+package ru.gorilla.gim.backend.config.initializer;
 
 import io.minio.BucketExistsArgs;
 import io.minio.MakeBucketArgs;
@@ -18,6 +18,7 @@ import ru.gorilla.gim.backend.util.Role;
 import java.time.LocalDateTime;
 
 import static ru.gorilla.gim.backend.util.CommonUnits.AVATAR_BUCKET;
+import static ru.gorilla.gim.backend.util.CommonUnits.DB_BACKUP_BUCKET;
 
 @Slf4j
 @Component
@@ -38,6 +39,7 @@ public class AppInitializer implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         createDefaultAdminUser();
         createAvatarMinioBucket();
+        createDbBackupBucket();
     }
 
     private void createDefaultAdminUser() {
@@ -60,9 +62,9 @@ public class AppInitializer implements ApplicationRunner {
             );
             if (!found) {
                 minioClient.makeBucket(MakeBucketArgs.builder().bucket(AVATAR_BUCKET).build());
-                log.info("Default bucket created");
+                log.info("Avatars bucket created");
             } else {
-                log.info("Default bucket already exists");
+                log.info("Avatars bucket already exists");
             }
             String policy = String.format("""
                     {
@@ -85,6 +87,23 @@ public class AppInitializer implements ApplicationRunner {
         } catch (Exception e) {
             log.error("Default bucket check failed!");
             throw new RuntimeException("Default bucket check failed!");
+        }
+    }
+
+    private void createDbBackupBucket() {
+        try {
+            boolean found = minioClient.bucketExists(
+                    BucketExistsArgs.builder().bucket(DB_BACKUP_BUCKET).build()
+            );
+            if (!found) {
+                minioClient.makeBucket(MakeBucketArgs.builder().bucket(DB_BACKUP_BUCKET).build());
+                log.info("DB backup bucket created");
+            } else {
+                log.info("DB backup bucket already exists");
+            }
+        } catch (Exception e) {
+            log.error("DB backup bucket check failed!");
+            throw new RuntimeException("DB backup bucket check failed!");
         }
     }
 }

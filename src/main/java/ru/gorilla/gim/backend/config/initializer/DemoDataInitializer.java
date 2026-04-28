@@ -1,4 +1,4 @@
-package ru.gorilla.gim.backend.config;
+package ru.gorilla.gim.backend.config.initializer;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
