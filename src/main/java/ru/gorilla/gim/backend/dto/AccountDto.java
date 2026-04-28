@@ -22,5 +22,6 @@ public class AccountDto extends AbstractDto {
     private String cardNumber;
     private Boolean isBlocked = false;
     private LocalDateTime paidUntil;
+    private FileMetaDto avatar;
     private Collection<AnalyzerWarning> warnings;
 }

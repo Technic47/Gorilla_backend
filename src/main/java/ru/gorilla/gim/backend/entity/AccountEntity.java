@@ -2,6 +2,7 @@ package ru.gorilla.gim.backend.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.OneToOne;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -26,4 +27,7 @@ public class AccountEntity extends AbstractEntity {
     private Boolean isBlocked;
     @Column(name = "paid_until")
     private LocalDateTime paidUntil;
+
+    @OneToOne
+    private FileMetaEntity avatar;
 }

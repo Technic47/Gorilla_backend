@@ -33,3 +33,8 @@ admin:
 
 analyzer:
   payment-warning-period: 7
+
+minio:
+  url: ${MINIO_URL}
+  username: ${MINIO_USER}
+  password: ${MINIO_PASS}

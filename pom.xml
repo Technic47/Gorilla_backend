@@ -12,13 +12,22 @@
 
     <groupId>ru.kuznetsov.shop</groupId>
     <artifactId>backend</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
     <name>backend</name>
     <description>backend</description>
 
     <properties>
         <java.version>21</java.version>
         <mapstruct.version>1.6.2</mapstruct.version>
+        <springdoc-openapi.version>3.0.2</springdoc-openapi.version>
+        <jjwt-api.version>0.12.6</jjwt-api.version>
+        <minio.version>9.0.0</minio.version>
+        <okhttp3.version>5.0.0-alpha.14</okhttp3.version>
+
+<!--        test-->
+        <junit-jupiter.conteiner.version>1.21.4</junit-jupiter.conteiner.version>
+        <spring-boot-testcontainers.version>4.1.0-RC1</spring-boot-testcontainers.version>
+        <postgresql.conteiner.version>1.21.4</postgresql.conteiner.version>
     </properties>
 
     <dependencies>
@@ -55,13 +64,11 @@
             <artifactId>mapstruct</artifactId>
             <version>${mapstruct.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>2.8.0</version>
+            <version>${springdoc-openapi.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
@@ -69,19 +76,29 @@
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
-            <version>0.12.6</version>
+            <version>${jjwt-api.version}</version>
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-impl</artifactId>
-            <version>0.12.6</version>
+            <version>${jjwt-api.version}</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-jackson</artifactId>
-            <version>0.12.6</version>
+            <version>${jjwt-api.version}</version>
             <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.minio</groupId>
+            <artifactId>minio</artifactId>
+            <version>${minio.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>${okhttp3.version}</version>
         </dependency>
 
         <dependency>
@@ -107,19 +124,19 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>1.21.4</version>
+            <version>${junit-jupiter.conteiner.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-testcontainers</artifactId>
-            <version>4.1.0-RC1</version>
+            <version>${spring-boot-testcontainers.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>postgresql</artifactId>
-            <version>1.21.4</version>
+            <version>${postgresql.conteiner.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

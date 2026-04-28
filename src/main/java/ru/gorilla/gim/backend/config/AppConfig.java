@@ -1,6 +1,7 @@
 package ru.gorilla.gim.backend.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.minio.MinioClient;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
@@ -41,6 +42,12 @@ public class AppConfig {
     private String username;
     @Value("${spring.datasource.password}")
     private String password;
+    @Value("${minio.url}")
+    private String minioURL;
+    @Value("${minio.username}")
+    private String minioUsername;
+    @Value("${minio.password}")
+    private String minioPassword;
 
     @Bean
     public DataSource dataSource() {
@@ -81,4 +88,11 @@ public class AppConfig {
         return builder.build();
     }
 
+    @Bean
+    public MinioClient minioClient() {
+        return MinioClient.builder()
+                .endpoint(minioURL)
+                .credentials(minioUsername, minioPassword)
+                .build();
+    }
 }

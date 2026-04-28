@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(mvn dependency:resolve -q)",
-      "Bash(mvn dependency:tree -Dincludes=com.fasterxml.jackson*,tools.jackson*)"
+      "Bash(mvn dependency:tree -Dincludes=com.fasterxml.jackson*,tools.jackson*)",
+      "Bash(xargs grep *)",
+      "Bash(mvn compile *)"
     ]
   }
 }

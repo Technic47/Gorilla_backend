@@ -1,5 +1,6 @@
 package ru.gorilla.gim.backend.service;
 
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import ru.gorilla.gim.backend.dto.AccountDto;
 import ru.gorilla.gim.backend.entity.AccountEntity;
@@ -22,5 +23,10 @@ public class AccountService extends AbstractService<
         entity.setPaidUntil(paidUntil);
         entity.setUpdated(LocalDateTime.now());
         return entityMapper.entityToDto(repository.saveAndFlush(entity));
+    }
+
+    @Transactional
+    public Integer setAvatar(Long accountId, Long avatarId) {
+        return repository.setAccountAvatar(accountId, avatarId);
     }
 }
