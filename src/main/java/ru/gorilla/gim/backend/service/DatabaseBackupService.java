@@ -1,18 +1,12 @@
 package ru.gorilla.gim.backend.service;
 
-import io.minio.GetObjectArgs;
-import io.minio.ListObjectsArgs;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
-import io.minio.RemoveObjectArgs;
-import io.minio.Result;
+import io.minio.*;
 import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-
 import ru.gorilla.gim.backend.dto.BackupFileDto;
 
 import java.io.BufferedReader;
@@ -25,7 +19,6 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static ru.gorilla.gim.backend.util.CommonUnits.DATE_FORMAT;
 import static ru.gorilla.gim.backend.util.CommonUnits.DB_BACKUP_BUCKET;
@@ -41,8 +34,8 @@ public class DatabaseBackupService {
     private String dbUrl;
     @Value("${spring.datasource.username}")
     private String dbUsername;
-    @Value("${db.container.name}")
-    private String dbContainerName;
+    @Value("${spring.datasource.password}")
+    private String dbPassword;
 
     private final MinioClient minioClient;
 
@@ -53,10 +46,25 @@ public class DatabaseBackupService {
             String objectName = "dump-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_FORMAT)) + ".sql";
 
             ProcessBuilder pb = new ProcessBuilder(
-                    "docker", "exec", "-i", dbContainerName,
-                    "pg_dump", "-U", dbUsername, getDatabaseName()
+                    "pg_dump",
+                    "-h", getDbHost(),
+                    "-p", getDbPort(),
+                    "-U", dbUsername,
+                    getDatabaseName()
             );
+            pb.environment().put("PGPASSWORD", dbPassword);
             Process process = pb.start();
+
+            // Drain stderr concurrently to prevent pipe-buffer deadlock
+            StringBuilder stderr = new StringBuilder();
+            Thread stderrDrainer = new Thread(() -> {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+                    reader.lines().forEach(line -> stderr.append(line).append('\n'));
+                } catch (Exception ignored) {
+                }
+            });
+            stderrDrainer.setDaemon(true);
+            stderrDrainer.start();
 
             try (InputStream inputStream = process.getInputStream()) {
                 minioClient.putObject(
@@ -70,11 +78,10 @@ public class DatabaseBackupService {
             }
 
             int exitCode = process.waitFor();
+            stderrDrainer.join(5_000);
+
             if (exitCode != 0) {
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
-                    String errorLog = reader.lines().collect(Collectors.joining("\n"));
-                    log.error("pg_dump failed (exit {}): {}", exitCode, errorLog);
-                }
+                log.error("pg_dump failed (exit {}): {}", exitCode, stderr);
                 throw new RuntimeException("Backup failed. See logs for details.");
             }
 
@@ -89,17 +96,21 @@ public class DatabaseBackupService {
         log.info("Starting database restore from: {}", objectName);
         try {
             ProcessBuilder pb = new ProcessBuilder(
-                    "docker", "exec", "-i", dbContainerName,
-                    "psql", "-U", dbUsername, "-d", getDatabaseName()
+                    "psql",
+                    "-h", getDbHost(),
+                    "-p", getDbPort(),
+                    "-U", dbUsername,
+                    "-d", getDatabaseName()
             );
+            pb.environment().put("PGPASSWORD", dbPassword);
             Process process = pb.start();
 
-            // Drain stderr concurrently to prevent pipe-buffer deadlock
             StringBuilder stderr = new StringBuilder();
             Thread stderrDrainer = new Thread(() -> {
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
                     reader.lines().forEach(line -> stderr.append(line).append('\n'));
-                } catch (Exception ignored) {}
+                } catch (Exception ignored) {
+                }
             });
             stderrDrainer.setDaemon(true);
             stderrDrainer.start();
@@ -141,7 +152,8 @@ public class DatabaseBackupService {
                 try {
                     String datePart = name.replace("dump-", "").replace(".sql", "");
                     createdAt = LocalDateTime.parse(datePart, formatter);
-                } catch (DateTimeParseException ignored) {}
+                } catch (DateTimeParseException ignored) {
+                }
                 result.add(new BackupFileDto(name, item.size(), createdAt));
             }
 
@@ -162,11 +174,8 @@ public class DatabaseBackupService {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_FORMAT);
             int removed = 0;
 
-            Iterable<Result<Item>> objects = minioClient.listObjects(
-                    ListObjectsArgs.builder().bucket(DB_BACKUP_BUCKET).build()
-            );
-
-            for (Result<Item> result : objects) {
+            for (Result<Item> result : minioClient.listObjects(
+                    ListObjectsArgs.builder().bucket(DB_BACKUP_BUCKET).build())) {
                 String name = result.get().objectName();
                 try {
                     String datePart = name.replace("dump-", "").replace(".sql", "");
@@ -190,6 +199,19 @@ public class DatabaseBackupService {
         } catch (Exception e) {
             log.error("Error during old backup cleanup: ", e);
         }
+    }
+
+    // ── JDBC URL parsing ──────────────────────────────────────────────────────
+
+    private String getDbHost() {
+        // jdbc:postgresql://host:port/dbname
+        String hostPort = dbUrl.replace("jdbc:postgresql://", "").split("/")[0];
+        return hostPort.contains(":") ? hostPort.split(":")[0] : hostPort;
+    }
+
+    private String getDbPort() {
+        String hostPort = dbUrl.replace("jdbc:postgresql://", "").split("/")[0];
+        return hostPort.contains(":") ? hostPort.split(":")[1] : "5432";
     }
 
     private String getDatabaseName() {
