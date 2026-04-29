@@ -1,8 +1,12 @@
 package ru.gorilla.gim.backend.service;
 
 import io.minio.GetObjectArgs;
+import io.minio.ListObjectsArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
+import io.minio.RemoveObjectArgs;
+import io.minio.Result;
+import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,6 +19,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.stream.Collectors;
 
 import static ru.gorilla.gim.backend.util.CommonUnits.DATE_FORMAT;
@@ -115,6 +120,44 @@ public class DatabaseBackupService {
         } catch (Exception e) {
             log.error("Critical error during restore: ", e);
             throw new RuntimeException("Restore failed", e);
+        }
+    }
+
+    @Async
+    public void deleteOldBackups(int retentionDays) {
+        log.info("Searching for backups older than {} day(s)", retentionDays);
+        try {
+            LocalDateTime cutoff = LocalDateTime.now().minusDays(retentionDays);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_FORMAT);
+            int removed = 0;
+
+            Iterable<Result<Item>> objects = minioClient.listObjects(
+                    ListObjectsArgs.builder().bucket(DB_BACKUP_BUCKET).build()
+            );
+
+            for (Result<Item> result : objects) {
+                String name = result.get().objectName();
+                try {
+                    String datePart = name.replace("dump-", "").replace(".sql", "");
+                    LocalDateTime backupTime = LocalDateTime.parse(datePart, formatter);
+                    if (backupTime.isBefore(cutoff)) {
+                        minioClient.removeObject(
+                                RemoveObjectArgs.builder()
+                                        .bucket(DB_BACKUP_BUCKET)
+                                        .object(name)
+                                        .build()
+                        );
+                        log.info("Removed old backup: {}", name);
+                        removed++;
+                    }
+                } catch (DateTimeParseException e) {
+                    log.warn("Skipping object with unrecognised name format: {}", name);
+                }
+            }
+
+            log.info("Old backup cleanup finished: {} file(s) removed", removed);
+        } catch (Exception e) {
+            log.error("Error during old backup cleanup: ", e);
         }
     }
 

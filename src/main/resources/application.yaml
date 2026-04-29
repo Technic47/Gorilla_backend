@@ -49,4 +49,6 @@ db:
     name: ${DB_CONTAINER_NAME:gorilla-postgres}
   backup:
     cron: ${BACKUP_CRON:0 00 12 * * *}
-    pg-dump-path: ${BACKUP_PG_DUMP_PATH:pg_dump}
+    retention-days: ${RETENTION_DAYS:31}
+    cleanup:
+      cron: ${BACKUP_CLEANUP_CRON:0 00 12 * * *}

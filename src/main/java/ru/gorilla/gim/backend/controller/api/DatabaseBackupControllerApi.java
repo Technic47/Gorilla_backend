@@ -30,4 +30,14 @@ public interface DatabaseBackupControllerApi {
             @Parameter(description = "Backup object name in MinIO (e.g. dump-2026-04-28T03:00:00.sql)", required = true)
             String objectName
     );
+
+    @Operation(summary = "Delete old backups", description = "Removes backups older than the specified number of days from MinIO. Runs asynchronously.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "202", description = "Cleanup started", content = @Content),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+    })
+    ResponseEntity<Void> deleteOldBackups(
+            @Parameter(description = "Delete backups older than this many days (default: 7)")
+            int retentionDays
+    );
 }

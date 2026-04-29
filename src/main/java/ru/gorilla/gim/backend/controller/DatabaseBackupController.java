@@ -29,6 +29,12 @@ public class DatabaseBackupController implements DatabaseBackupControllerApi {
         return ResponseEntity.ok().build();
     }
 
+    @DeleteMapping("/old-backups")
+    public ResponseEntity<Void> deleteOldBackups(@RequestParam(defaultValue = "7") int retentionDays) {
+        databaseBackupService.deleteOldBackups(retentionDays);
+        return ResponseEntity.accepted().build();
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ProblemDetail handleRuntimeError(RuntimeException ex) {
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
