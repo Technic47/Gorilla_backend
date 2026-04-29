@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import ru.gorilla.gim.backend.dto.BackupFileDto;
+
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -20,6 +22,9 @@ import java.io.OutputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static ru.gorilla.gim.backend.util.CommonUnits.DATE_FORMAT;
@@ -120,6 +125,32 @@ public class DatabaseBackupService {
         } catch (Exception e) {
             log.error("Critical error during restore: ", e);
             throw new RuntimeException("Restore failed", e);
+        }
+    }
+
+    public List<BackupFileDto> listBackups() {
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_FORMAT);
+            List<BackupFileDto> result = new ArrayList<>();
+
+            for (Result<Item> r : minioClient.listObjects(
+                    ListObjectsArgs.builder().bucket(DB_BACKUP_BUCKET).build())) {
+                Item item = r.get();
+                String name = item.objectName();
+                LocalDateTime createdAt = null;
+                try {
+                    String datePart = name.replace("dump-", "").replace(".sql", "");
+                    createdAt = LocalDateTime.parse(datePart, formatter);
+                } catch (DateTimeParseException ignored) {}
+                result.add(new BackupFileDto(name, item.size(), createdAt));
+            }
+
+            result.sort(Comparator.comparing(BackupFileDto::getCreatedAt,
+                    Comparator.nullsLast(Comparator.reverseOrder())));
+            return result;
+        } catch (Exception e) {
+            log.error("Failed to list backups: ", e);
+            throw new RuntimeException("Failed to list backups", e);
         }
     }
 

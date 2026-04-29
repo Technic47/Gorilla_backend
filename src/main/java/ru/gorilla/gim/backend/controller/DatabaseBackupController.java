@@ -6,7 +6,10 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 import ru.gorilla.gim.backend.controller.api.DatabaseBackupControllerApi;
+import ru.gorilla.gim.backend.dto.BackupFileDto;
 import ru.gorilla.gim.backend.service.DatabaseBackupService;
 
 @RestController
@@ -16,6 +19,11 @@ import ru.gorilla.gim.backend.service.DatabaseBackupService;
 public class DatabaseBackupController implements DatabaseBackupControllerApi {
 
     private final DatabaseBackupService databaseBackupService;
+
+    @GetMapping
+    public ResponseEntity<List<BackupFileDto>> listBackups() {
+        return ResponseEntity.ok(databaseBackupService.listBackups());
+    }
 
     @PostMapping("/backup")
     public ResponseEntity<Void> backup() {

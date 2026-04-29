@@ -8,10 +8,21 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import ru.gorilla.gim.backend.dto.BackupFileDto;
+
+import java.util.List;
 
 @Tag(name = "Database Backup", description = "Database backup and restore management API. Requires ADMIN role.")
 @SecurityRequirement(name = "bearerAuth")
 public interface DatabaseBackupControllerApi {
+
+    @Operation(summary = "List backups", description = "Returns all backup files from MinIO with name, size, and parsed date. Sorted newest first.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Backup list returned"),
+            @ApiResponse(responseCode = "400", description = "Failed to retrieve list", content = @Content),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
+    })
+    ResponseEntity<List<BackupFileDto>> listBackups();
 
     @Operation(summary = "Trigger backup", description = "Starts a database backup asynchronously. Returns immediately.")
     @ApiResponses({

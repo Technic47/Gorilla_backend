@@ -1,4 +1,4 @@
-package ru.gorilla.gim.backend.controller;
+package ru.gorilla.gim.backend.controller.advice;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -8,6 +8,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import ru.gorilla.gim.backend.controller.AvatarController;
 
 @RestControllerAdvice(assignableTypes = AvatarController.class)
 public class AvatarControllerAdvice {
