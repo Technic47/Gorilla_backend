@@ -1,5 +1,7 @@
 package ru.gorilla.gim.backend.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -21,6 +23,13 @@ public interface AccountRepository extends AbstractRepository<AccountEntity> {
     @Query("SELECT paidUntil from AccountEntity " +
             "WHERE id = :accountId")
     LocalDateTime getPaidUntilById(Long accountId);
+
+    @Query("SELECT a FROM AccountEntity a WHERE " +
+            "LOWER(a.firstName)   LIKE LOWER(CONCAT('%', :q, '%')) OR " +
+            "LOWER(a.secondName)  LIKE LOWER(CONCAT('%', :q, '%')) OR " +
+            "LOWER(a.lastName)    LIKE LOWER(CONCAT('%', :q, '%')) OR " +
+            "LOWER(a.cardNumber)  LIKE LOWER(CONCAT('%', :q, '%'))")
+    Page<AccountEntity> searchByQuery(@Param("q") String q, Pageable pageable);
 
     List<AccountEntity> findAllByDemoTrue();
 

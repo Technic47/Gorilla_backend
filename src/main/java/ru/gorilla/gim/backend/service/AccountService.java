@@ -1,6 +1,8 @@
 package ru.gorilla.gim.backend.service;
 
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.gorilla.gim.backend.dto.AccountDto;
 import ru.gorilla.gim.backend.entity.AccountEntity;
@@ -15,6 +17,10 @@ public class AccountService extends AbstractService<
 
     protected AccountService(AccountRepository repository, AccountMapper mapper) {
         super(repository, mapper);
+    }
+
+    public Page<AccountDto> searchPage(String query, Pageable pageable) {
+        return repository.searchByQuery(query.trim(), pageable).map(entityMapper::entityToDto);
     }
 
     public AccountDto updatePaidUntil(Long id, LocalDateTime paidUntil) {

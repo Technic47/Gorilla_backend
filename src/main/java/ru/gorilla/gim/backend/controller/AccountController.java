@@ -39,7 +39,12 @@ public class AccountController implements AccountControllerApi {
     }
 
     @GetMapping("/page")
-    public ResponseEntity<Page<AccountDto>> findPage(@PageableDefault(size = 10) Pageable pageable) {
+    public ResponseEntity<Page<AccountDto>> findPage(
+            @RequestParam(required = false) String query,
+            @PageableDefault(size = 10) Pageable pageable) {
+        if (query != null && !query.isBlank()) {
+            return ResponseEntity.ok(accountService.searchPage(query, pageable));
+        }
         return ResponseEntity.ok(accountService.findPage(pageable));
     }
 

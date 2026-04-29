@@ -35,10 +35,14 @@ public interface AccountControllerApi {
     @Operation(
             summary = "Get accounts page",
             description = "Returns a paginated list of accounts. " +
+                    "Pass `query` to filter by first name, patronymic, last name, or card number (case-insensitive). " +
                     "Supports sorting by any AccountDto field. " +
                     "Multiple `sort` parameters are allowed (e.g. `sort=lastName,asc&sort=firstName,asc`)."
     )
     @Parameters({
+            @Parameter(name = "query", in = ParameterIn.QUERY,
+                    description = "Optional search string matched against name fields and card number",
+                    schema = @Schema(type = "string")),
             @Parameter(name = "page", in = ParameterIn.QUERY, description = "Page number, 0-based",
                     schema = @Schema(type = "integer", defaultValue = "0")),
             @Parameter(name = "size", in = ParameterIn.QUERY, description = "Number of items per page",
@@ -53,6 +57,7 @@ public interface AccountControllerApi {
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
     })
     ResponseEntity<Page<AccountDto>> findPage(
+            @Parameter(hidden = true) String query,
             @Parameter(hidden = true) Pageable pageable
     );
 

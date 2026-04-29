@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import ru.gorilla.gim.backend.BaseIntegrationTest;
 import ru.gorilla.gim.backend.dto.AccountDto;
 import ru.gorilla.gim.backend.repository.AccountRepository;
+import ru.gorilla.gim.backend.repository.PaymentRepository;
 import ru.gorilla.gim.backend.util.CommonUnits;
 
 import java.time.LocalDateTime;
@@ -19,6 +20,8 @@ class AccountControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private AccountRepository accountRepository;
+    @Autowired
+    private PaymentRepository paymentRepository;
 
     private String adminToken;
     private Long createdId;
@@ -45,7 +48,10 @@ class AccountControllerIntegrationTest extends BaseIntegrationTest {
     @AfterEach
     void tearDown() {
         if (createdId != null) {
-            accountRepository.findById(createdId).ifPresent(accountRepository::delete);
+            accountRepository.findById(createdId).ifPresent(account -> {
+                paymentRepository.deleteAllByAccountIn(java.util.List.of(account));
+                accountRepository.delete(account);
+            });
             createdId = null;
         }
     }
@@ -101,6 +107,44 @@ class AccountControllerIntegrationTest extends BaseIntegrationTest {
                 .uri("/account/page")
                 .exchange()
                 .expectStatus().isUnauthorized();
+    }
+
+    @Test
+    void findPage_queryMatchesFirstName_returnsAccount() {
+        restTestClient
+                .get()
+                .uri("/account/page?query=Integration")
+                .header("Authorization", "Bearer " + adminToken)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.content").isArray()
+                .jsonPath("$.content[?(@.id == " + createdId + ")]").exists();
+    }
+
+    @Test
+    void findPage_queryMatchesCardNumber_returnsAccount() {
+        restTestClient
+                .get()
+                .uri("/account/page?query=TEST-CARD-001")
+                .header("Authorization", "Bearer " + adminToken)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.content[?(@.id == " + createdId + ")]").exists();
+    }
+
+    @Test
+    void findPage_queryNoMatch_returnsEmptyContent() {
+        restTestClient
+                .get()
+                .uri("/account/page?query=__no_match__")
+                .header("Authorization", "Bearer " + adminToken)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.content").isArray()
+                .jsonPath("$.totalElements").isEqualTo(0);
     }
 
     // ── findAll ───────────────────────────────────────────────────────────────
