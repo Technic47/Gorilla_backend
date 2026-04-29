@@ -1,24 +1,29 @@
 package ru.gorilla.gim.backend.controller;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.gorilla.gim.backend.controller.api.AccountControllerApi;
 import ru.gorilla.gim.backend.dto.AccountDto;
+import ru.gorilla.gim.backend.dto.PaymentDto;
 import ru.gorilla.gim.backend.service.AccountService;
-
+import ru.gorilla.gim.backend.service.PaymentService;
 import ru.gorilla.gim.backend.util.CommonUnits;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
-
 import java.util.List;
 import java.util.Map;
+
+import static ru.gorilla.gim.backend.util.PeriodUtils.buildPeriodDescription;
 
 @RestController
 @RequestMapping("/account")
@@ -26,6 +31,7 @@ import java.util.Map;
 public class AccountController implements AccountControllerApi {
 
     private final AccountService accountService;
+    private final PaymentService paymentService;
 
     @GetMapping
     public ResponseEntity<List<AccountDto>> findAll() {
@@ -56,22 +62,37 @@ public class AccountController implements AccountControllerApi {
 
     @PatchMapping("/{id}")
     public ResponseEntity<AccountDto> patchUpdate(@PathVariable Long id,
-                                                   @RequestBody Map<String, Object> fields) {
+                                                  @RequestBody Map<String, Object> fields) {
         AccountDto dto = accountService.patchUpdate(id, fields);
         return dto != null ? ResponseEntity.ok(dto) : ResponseEntity.notFound().build();
     }
 
+    @Transactional
     @PatchMapping("/{id}/paid-until")
     public ResponseEntity<AccountDto> updatePaidUntil(@PathVariable Long id,
-                                                       @RequestParam String newDate) {
+                                                      @RequestParam String newDate) {
         LocalDateTime parsedDate;
+        LocalDateTime paidUntil = accountService.getPaidUntilById(id);
+        LocalDate currentDateUntil = paidUntil == null ?
+                LocalDateTime.now().toLocalDate() :
+                paidUntil.toLocalDate();
+
         try {
             parsedDate = LocalDateTime.parse(newDate, DateTimeFormatter.ofPattern(CommonUnits.DATE_FORMAT));
         } catch (DateTimeParseException e) {
             throw new IllegalArgumentException("Cannot parse date: " + newDate + ". Expected format: " + CommonUnits.DATE_FORMAT);
         }
         AccountDto dto = accountService.updatePaidUntil(id, parsedDate);
-        return dto != null ? ResponseEntity.ok(dto) : ResponseEntity.notFound().build();
+        if (dto == null) return ResponseEntity.notFound().build();
+
+        Period period = Period.between(currentDateUntil, parsedDate.toLocalDate());
+        PaymentDto payment = new PaymentDto();
+        payment.setAccountId(id);
+        payment.setPeriod(period);
+        payment.setDescription(buildPeriodDescription(period));
+        paymentService.add(payment);
+
+        return ResponseEntity.ok(dto);
     }
 
     @DeleteMapping("/{id}")

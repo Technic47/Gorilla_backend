@@ -29,4 +29,8 @@ public class AccountService extends AbstractService<
     public Integer setAvatar(Long accountId, Long avatarId) {
         return repository.setAccountAvatar(accountId, avatarId);
     }
+
+    public LocalDateTime getPaidUntilById(Long accountId) {
+        return repository.getPaidUntilById(accountId);
+    }
 }

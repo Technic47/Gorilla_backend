@@ -23,5 +23,6 @@ public class AccountDto extends AbstractDto {
     private Boolean isBlocked = false;
     private LocalDateTime paidUntil;
     private FileMetaDto avatar;
+    private Boolean demo;
     private Collection<AnalyzerWarning> warnings;
 }

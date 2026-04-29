@@ -27,6 +27,8 @@ public class AccountEntity extends AbstractEntity {
     private Boolean isBlocked;
     @Column(name = "paid_until")
     private LocalDateTime paidUntil;
+    @Column(name = "demo")
+    private Boolean demo = false;
 
     @OneToOne
     private FileMetaEntity avatar;

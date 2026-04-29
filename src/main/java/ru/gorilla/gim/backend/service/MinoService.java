@@ -16,7 +16,7 @@ import static ru.gorilla.gim.backend.util.CommonUnits.AVATAR_BUCKET;
 @RequiredArgsConstructor
 public class MinoService {
 
-    private final static int URL_EXPIRY_MINUTES = 10;
+    private static final int URL_EXPIRY_MINUTES = 10;
 
     private final MinioClient minioClient;
 
@@ -27,7 +27,7 @@ public class MinoService {
                             .method(Http.Method.PUT)
                             .bucket(AVATAR_BUCKET)
                             .object(fileName)
-                            .expiry(URL_EXPIRY_MINUTES, TimeUnit.MINUTES) // URL expires in 15 mins
+                            .expiry(URL_EXPIRY_MINUTES, TimeUnit.MINUTES)
                             .build());
         } catch (Exception ex) {
             log.error("Error getting presigned object url for file {}", fileName, ex);

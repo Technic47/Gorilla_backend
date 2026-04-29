@@ -39,11 +39,6 @@ minio:
   username: ${MINIO_USER}
   password: ${MINIO_PASS}
 
-demo:
-  data:
-    enable: ${DEMO_DATA_ENABLE:false}
-    amount: ${DEMO_DATA_AMOUNT:200}
-
 db:
   container:
     name: ${DB_CONTAINER_NAME:gorilla-postgres}
