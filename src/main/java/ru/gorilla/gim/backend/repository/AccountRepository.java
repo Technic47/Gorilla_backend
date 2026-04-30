@@ -36,4 +36,9 @@ public interface AccountRepository extends AbstractRepository<AccountEntity> {
     @Modifying
     @Query("DELETE FROM AccountEntity WHERE demo = true")
     void deleteAllByDemoTrue();
+
+    long countByCreatedBetween(LocalDateTime from, LocalDateTime to);
+
+    @Query("SELECT a.created FROM AccountEntity a WHERE a.created >= :from AND a.created < :to")
+    List<LocalDateTime> findCreatedTimestamps(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 }

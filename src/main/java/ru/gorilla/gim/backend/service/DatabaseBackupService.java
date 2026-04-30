@@ -8,11 +8,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import ru.gorilla.gim.backend.dto.BackupFileDto;
+import ru.gorilla.gim.backend.util.PostgresBinaryLocator;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -36,8 +39,91 @@ public class DatabaseBackupService {
     private String dbUsername;
     @Value("${spring.datasource.password}")
     private String dbPassword;
+    @Value("${db.backup.pg-dump:pg_dump}")
+    private String pgDumpPathConfig;
+    @Value("${db.backup.psql:psql}")
+    private String psqlPathConfig;
+    @Value("${db.backup.mode:auto}")
+    private String backupMode;
+    @Value("${db.backup.docker-container:gorilla-postgres}")
+    private String dockerContainer;
+
+    private volatile String resolvedPgDump;
+    private volatile String resolvedPsql;
 
     private final MinioClient minioClient;
+
+    private boolean isDockerMode() {
+        boolean containerNameSet = dockerContainer != null && !dockerContainer.isBlank();
+        if ("native".equalsIgnoreCase(backupMode)) return false;
+        if ("docker".equalsIgnoreCase(backupMode)) return containerNameSet;
+        return containerNameSet && !isRunningInContainer();
+    }
+
+    // /.dockerenv is present in standard Docker images; cgroup check covers Kubernetes/containerd.
+    private static boolean isRunningInContainer() {
+        if (Files.exists(Path.of("/.dockerenv"))) return true;
+        try {
+            String cgroup = Files.readString(Path.of("/proc/1/cgroup"));
+            return cgroup.contains("docker") || cgroup.contains("kubepods") || cgroup.contains("containerd");
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private List<String> buildDumpCommand() {
+        if (isDockerMode()) {
+            log.info("pg_dump via docker exec on container: {}", dockerContainer);
+            return List.of(
+                    "docker", "exec",
+                    "-e", "PGPASSWORD=" + dbPassword,
+                    dockerContainer,
+                    "pg_dump", "-U", dbUsername, getDatabaseName()
+            );
+        }
+        return List.of(
+                pgDumpBinary(),
+                "-h", getDbHost(),
+                "-p", getDbPort(),
+                "-U", dbUsername,
+                getDatabaseName()
+        );
+    }
+
+    private List<String> buildRestoreCommand() {
+        if (isDockerMode()) {
+            log.info("psql via docker exec on container: {}", dockerContainer);
+            return List.of(
+                    "docker", "exec", "-i",
+                    "-e", "PGPASSWORD=" + dbPassword,
+                    dockerContainer,
+                    "psql", "-U", dbUsername, "-d", getDatabaseName()
+            );
+        }
+        return List.of(
+                psqlBinary(),
+                "-h", getDbHost(),
+                "-p", getDbPort(),
+                "-U", dbUsername,
+                "-d", getDatabaseName()
+        );
+    }
+
+    private synchronized String pgDumpBinary() {
+        if (resolvedPgDump == null) {
+            resolvedPgDump = PostgresBinaryLocator.resolve(pgDumpPathConfig, "pg_dump");
+            log.info("Using pg_dump: {}", resolvedPgDump);
+        }
+        return resolvedPgDump;
+    }
+
+    private synchronized String psqlBinary() {
+        if (resolvedPsql == null) {
+            resolvedPsql = PostgresBinaryLocator.resolve(psqlPathConfig, "psql");
+            log.info("Using psql: {}", resolvedPsql);
+        }
+        return resolvedPsql;
+    }
 
     @Async
     public void backup() {
@@ -45,14 +131,10 @@ public class DatabaseBackupService {
         try {
             String objectName = "dump-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_FORMAT)) + ".sql";
 
-            ProcessBuilder pb = new ProcessBuilder(
-                    "pg_dump",
-                    "-h", getDbHost(),
-                    "-p", getDbPort(),
-                    "-U", dbUsername,
-                    getDatabaseName()
-            );
-            pb.environment().put("PGPASSWORD", dbPassword);
+            ProcessBuilder pb = new ProcessBuilder(buildDumpCommand());
+            if (!isDockerMode()) {
+                pb.environment().put("PGPASSWORD", dbPassword);
+            }
             Process process = pb.start();
 
             // Drain stderr concurrently to prevent pipe-buffer deadlock
@@ -95,14 +177,10 @@ public class DatabaseBackupService {
     public void restoreDataBase(String objectName) {
         log.info("Starting database restore from: {}", objectName);
         try {
-            ProcessBuilder pb = new ProcessBuilder(
-                    "psql",
-                    "-h", getDbHost(),
-                    "-p", getDbPort(),
-                    "-U", dbUsername,
-                    "-d", getDatabaseName()
-            );
-            pb.environment().put("PGPASSWORD", dbPassword);
+            ProcessBuilder pb = new ProcessBuilder(buildRestoreCommand());
+            if (!isDockerMode()) {
+                pb.environment().put("PGPASSWORD", dbPassword);
+            }
             Process process = pb.start();
 
             StringBuilder stderr = new StringBuilder();
