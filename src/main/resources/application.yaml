@@ -40,10 +40,12 @@ minio:
   password: ${MINIO_PASS}
 
 db:
-  container:
-    name: ${DB_CONTAINER_NAME:gorilla-postgres}
   backup:
     cron: ${BACKUP_CRON:0 00 12 * * *}
     retention-days: ${RETENTION_DAYS:31}
     cleanup:
       cron: ${BACKUP_CLEANUP_CRON:0 00 12 * * *}
+    mode: ${BACKUP_MODE:auto}
+    docker-container: ${BACKUP_DOCKER_CONTAINER:gorilla-postgres}
+    pg-dump: ${PG_DUMP:pg_dump}
+    psql: ${PSQL:psql}

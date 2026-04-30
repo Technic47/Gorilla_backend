@@ -12,7 +12,9 @@
       "Bash(mvn *)",
       "PowerShell(mvn *)",
       "PowerShell(Get-Command *)",
-      "PowerShell(.\\\\mvnw.cmd -q -DskipTests compile)"
+      "PowerShell(.\\\\mvnw.cmd -q -DskipTests compile)",
+      "PowerShell(Test-Path *)",
+      "PowerShell(docker exec gorilla-postgres *)"
     ]
   }
 }
