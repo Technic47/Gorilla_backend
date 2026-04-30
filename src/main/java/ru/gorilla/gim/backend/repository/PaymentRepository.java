@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import ru.gorilla.gim.backend.entity.AccountEntity;
 import ru.gorilla.gim.backend.entity.PaymentEntity;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -18,4 +19,9 @@ public interface PaymentRepository extends AbstractRepository<PaymentEntity> {
     @Modifying
     @Query("DELETE FROM PaymentEntity p WHERE p.account IN :accounts")
     void deleteAllByAccountIn(@Param("accounts") List<AccountEntity> accounts);
+
+    long countByCreatedBetween(LocalDateTime from, LocalDateTime to);
+
+    @Query("SELECT p.created FROM PaymentEntity p WHERE p.created >= :from AND p.created < :to")
+    List<LocalDateTime> findCreatedTimestamps(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 }
