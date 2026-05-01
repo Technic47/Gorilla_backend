@@ -21,7 +21,6 @@ public abstract class AccountMapper implements AbstractMapper<AccountEntity, Acc
 
     @Override
     @Mapping(target = "warnings", source = "entity", qualifiedByName = "analyzeAccount")
-//    @Mapping(target = "paidUntil", source = "entity.id", qualifiedByName = "getPaidUntilDate")
     public abstract AccountDto entityToDto(AccountEntity entity);
 
     @Named("analyzeAccount")

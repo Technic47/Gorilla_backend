@@ -26,7 +26,6 @@ public class PaymentService extends AbstractService<
     }
 
     public LocalDateTime findLastDateToByAccountId(Long accountId) {
-        PaymentEntity entity = repository.findTopByAccount_IdOrderByCreatedDesc(accountId);
-        return entity != null ? entity.getDateTo() : null;
+        return repository.findLastDateToByAccountId(accountId);
     }
 }

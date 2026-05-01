@@ -15,6 +15,5 @@ public class FileMetaEntity extends AbstractEntity {
     private String objectKey; // Путь в MinIO
     private String contentType;
     private String status; // Например: PENDING, UPLOADED, FAILED
-
-    // Getters and Setters
+    private Long accountId;
 }

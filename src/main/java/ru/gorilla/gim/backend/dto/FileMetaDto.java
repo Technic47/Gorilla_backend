@@ -17,4 +17,5 @@ public class FileMetaDto extends AbstractDto {
     private String objectKey;
     private String contentType;
     private String status;
+    private Long accountId;
 }

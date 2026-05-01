@@ -44,7 +44,8 @@ public class AvatarController implements AvatarControllerApi {
                         request.fileName(),
                         objectKey,
                         request.contentType(),
-                        "PENDING"
+                        "PENDING",
+                        request.accountId()
                 ));
 
                 accountService.setAvatar(request.accountId(), fileMetaDto.getId());
