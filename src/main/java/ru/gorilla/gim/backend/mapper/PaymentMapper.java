@@ -8,7 +8,7 @@ import ru.gorilla.gim.backend.entity.PaymentEntity;
 import ru.gorilla.gim.backend.repository.AccountRepository;
 import ru.gorilla.gim.backend.repository.ProductRepository;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = ProductMapper.class)
 public abstract class PaymentMapper implements AbstractMapper<PaymentEntity, PaymentDto> {
 
     @Autowired
@@ -18,11 +18,10 @@ public abstract class PaymentMapper implements AbstractMapper<PaymentEntity, Pay
 
     @Override
     @Mapping(target = "accountId", source = "account.id")
-    @Mapping(target = "productId", source = "product.id")
     public abstract PaymentDto entityToDto(PaymentEntity entity);
 
     @Override
     @Mapping(target = "account", expression = "java(accountRepository.findById(dto.getAccountId()).orElse(null))")
-    @Mapping(target = "product", expression = "java(dto.getProductId() != null ? productRepository.findById(dto.getProductId()).orElse(null) : null)")
+    @Mapping(target = "product", expression = "java(dto.getProduct() != null ? productRepository.findById(dto.getProduct().getId()).orElse(null) : null)")
     public abstract PaymentEntity dtoToEntity(PaymentDto dto);
 }
