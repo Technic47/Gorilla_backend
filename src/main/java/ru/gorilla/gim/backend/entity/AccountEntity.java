@@ -21,6 +21,8 @@ public class AccountEntity extends AbstractEntity {
     private String secondName;
     @Column(name = "last_name")
     private String lastName;
+    @Column(name = "phone")
+    private String phone;
     @Column(name = "card_number", unique = true)
     private String cardNumber;
     @Column(name = "is_blocked")
@@ -29,6 +31,8 @@ public class AccountEntity extends AbstractEntity {
     private LocalDateTime paidUntil;
     @Column(name = "demo")
     private Boolean demo = false;
+    @Column(name = "comment")
+    private String comment;
 
     @OneToOne
     private FileMetaEntity avatar;

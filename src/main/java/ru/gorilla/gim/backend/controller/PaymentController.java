@@ -1,5 +1,6 @@
 package ru.gorilla.gim.backend.controller;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -8,9 +9,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.gorilla.gim.backend.controller.api.PaymentControllerApi;
+import ru.gorilla.gim.backend.dto.AccountDto;
 import ru.gorilla.gim.backend.dto.PaymentDto;
+import ru.gorilla.gim.backend.service.AccountService;
 import ru.gorilla.gim.backend.service.PaymentService;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +24,7 @@ import java.util.Map;
 public class PaymentController implements PaymentControllerApi {
 
     private final PaymentService paymentService;
+    private final AccountService accountService;
 
     @GetMapping
     public ResponseEntity<List<PaymentDto>> findAll() {
@@ -43,7 +48,18 @@ public class PaymentController implements PaymentControllerApi {
     }
 
     @PostMapping
+    @Transactional
     public ResponseEntity<PaymentDto> add(@RequestBody PaymentDto dto) {
+        AccountDto account = accountService.findById(dto.getAccountId());
+        LocalDateTime paidUntilOld = account.getPaidUntil();
+
+        if (paidUntilOld.isAfter(dto.getDateTo())){
+            throw new RuntimeException("Дата продления указана не верно!");
+        }
+
+        account.setPaidUntil(dto.getDateTo());
+        accountService.update(account);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(paymentService.add(dto));
     }
 

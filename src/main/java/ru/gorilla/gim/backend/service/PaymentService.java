@@ -6,6 +6,7 @@ import ru.gorilla.gim.backend.entity.PaymentEntity;
 import ru.gorilla.gim.backend.mapper.PaymentMapper;
 import ru.gorilla.gim.backend.repository.PaymentRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,8 +25,8 @@ public class PaymentService extends AbstractService<
                 .collect(Collectors.toList());
     }
 
-    public PaymentDto findLastByAccountId(Long accountId) {
+    public LocalDateTime findLastDateToByAccountId(Long accountId) {
         PaymentEntity entity = repository.findTopByAccount_IdOrderByCreatedDesc(accountId);
-        return entity != null ? entityMapper.entityToDto(entity) : null;
+        return entity != null ? entity.getDateTo() : null;
     }
 }

@@ -14,7 +14,8 @@
       "PowerShell(Get-Command *)",
       "PowerShell(.\\\\mvnw.cmd -q -DskipTests compile)",
       "PowerShell(Test-Path *)",
-      "PowerShell(docker exec gorilla-postgres *)"
+      "PowerShell(docker exec gorilla-postgres *)",
+      "PowerShell(.\\\\mvnw.cmd -q -DskipTests compile 2>&1)"
     ]
   }
 }

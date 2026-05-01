@@ -6,18 +6,17 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.time.Period;
 
 @Setter
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PaymentDto extends AbstractDto {
+public class ProductDto extends AbstractDto {
 
     private String description;
-    private LocalDateTime dateFrom;
-    private LocalDateTime dateTo;
-    private Long accountId;
-    private Long productId;
+    private String comment;
+    private Long sum;
+    private Period period;
 }

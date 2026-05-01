@@ -89,16 +89,6 @@ public class DemoAccountsService {
                 secondName = secondNames[random.nextInt(secondNames.length)];
             }
 
-            int paidCase = random.nextInt(10);
-            LocalDateTime paidUntil;
-            if (paidCase < 2) {
-                paidUntil = null;
-            } else if (paidCase < 7) {
-                paidUntil = now.plusDays(random.nextInt(365) + 1);
-            } else {
-                paidUntil = now.minusDays(random.nextInt(180) + 1);
-            }
-
             LocalDateTime created = now.minusDays(random.nextInt(730)).minusHours(random.nextInt(24));
             LocalDateTime updated = created.plusDays(random.nextInt(60));
 
@@ -108,7 +98,6 @@ public class DemoAccountsService {
             account.setLastName(lastName);
             account.setCardNumber(String.format("GIM-%05d", offset + i));
             account.setIsBlocked(random.nextInt(10) < 2);
-            account.setPaidUntil(paidUntil);
             account.setCreated(created);
             account.setUpdated(updated);
             account.setDemo(true);
@@ -121,23 +110,24 @@ public class DemoAccountsService {
 
         List<PaymentEntity> payments = new ArrayList<>();
         for (AccountEntity account : saved) {
-            int paymentCount = account.getPaidUntil() != null
-                    ? 1 + random.nextInt(4)
-                    : random.nextInt(2);
+            int paymentCount = random.nextInt(4);
 
             LocalDateTime paymentDate = account.getCreated();
             for (int j = 0; j < paymentCount; j++) {
                 int periodIndex = random.nextInt(PERIODS.length);
 
+                LocalDateTime periodEnd = paymentDate.plus(PERIODS[periodIndex]);
+
                 PaymentEntity payment = new PaymentEntity();
                 payment.setAccount(account);
-                payment.setPeriod(PERIODS[periodIndex]);
+                payment.setDateFrom(paymentDate);
+                payment.setDateTo(periodEnd);
                 payment.setDescription(buildPeriodDescription(PERIODS[periodIndex]));
                 payment.setCreated(paymentDate);
                 payment.setUpdated(paymentDate);
 
                 payments.add(payment);
-                paymentDate = paymentDate.plusDays(random.nextInt(90) + 30);
+                paymentDate = periodEnd.plusDays(random.nextInt(90) + 30);
             }
         }
 
