@@ -13,8 +13,8 @@ import java.util.List;
 @Repository
 public interface PaymentRepository extends AbstractRepository<PaymentEntity> {
 
-//    @Query("SELECT p.account.id FROM PaymentEntity p WHERE p.account.id = :accountId")
-    @Query(value = "Select * from payment_entity where account_id = :accountId", nativeQuery = true)
+    @Query("SELECT p FROM PaymentEntity p WHERE p.account.id = :accountId")
+//    @Query(value = "Select * from payment_entity where account_id = :accountId", nativeQuery = true)
     List<PaymentEntity> findAllByAccount_Id(@Param("accountId") Long accountId);
 
     @Query("SELECT p.dateTo FROM PaymentEntity p WHERE p.account.id = :accountId ORDER BY p.dateTo DESC LIMIT 1")

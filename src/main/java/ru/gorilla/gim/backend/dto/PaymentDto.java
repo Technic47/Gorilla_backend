@@ -19,5 +19,5 @@ public class PaymentDto extends AbstractDto {
     private LocalDateTime dateFrom;
     private LocalDateTime dateTo;
     private Long accountId;
-    private Long productId;
+    private ProductDto product;
 }

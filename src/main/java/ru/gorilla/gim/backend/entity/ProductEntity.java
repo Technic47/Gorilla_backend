@@ -1,10 +1,12 @@
 package ru.gorilla.gim.backend.entity;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import ru.gorilla.gim.backend.converter.PeriodConverter;
 
 import java.time.Period;
 
@@ -20,6 +22,7 @@ public class ProductEntity extends AbstractEntity {
     private String comment;
     @Column(name = "sum")
     private Long sum;
-    @Column(name = "period", nullable = false)
+    @Column(name = "period", nullable = false, columnDefinition = "bytea")
+    @Convert(converter = PeriodConverter.class)
     private Period period;
 }
