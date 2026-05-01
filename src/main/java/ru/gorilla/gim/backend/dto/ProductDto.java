@@ -6,16 +6,17 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.Period;
+
 @Setter
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class FileMetaDto extends AbstractDto {
+public class ProductDto extends AbstractDto {
 
-    private String originalName;
-    private String objectKey;
-    private String contentType;
-    private String status;
-    private Long accountId;
+    private String description;
+    private String comment;
+    private Long sum;
+    private Period period;
 }

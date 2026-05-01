@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.Period;
+import java.time.LocalDateTime;
 
 @Setter
 @Getter
@@ -14,7 +14,10 @@ import java.time.Period;
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PaymentDto extends AbstractDto {
-    private Period period;
+
     private String description;
+    private LocalDateTime dateFrom;
+    private LocalDateTime dateTo;
     private Long accountId;
+    private Long productId;
 }

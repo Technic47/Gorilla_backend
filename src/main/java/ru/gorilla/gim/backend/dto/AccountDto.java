@@ -19,10 +19,12 @@ public class AccountDto extends AbstractDto {
     private String firstName;
     private String secondName;
     private String lastName;
+    private String phone;
     private String cardNumber;
     private Boolean isBlocked = false;
     private LocalDateTime paidUntil;
     private FileMetaDto avatar;
     private Boolean demo;
+    private String comment;
     private Collection<AnalyzerWarning> warnings;
 }

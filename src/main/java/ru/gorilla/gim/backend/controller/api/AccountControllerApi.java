@@ -113,23 +113,6 @@ public interface AccountControllerApi {
                     content = @Content(schema = @Schema(type = "object"))) Map<String, Object> fields
     );
 
-    @Operation(
-            summary = "Update paidUntil date",
-            description = "Sets the paidUntil field for an account. Date must follow the format `" + "yyyy-MM-dd'T'HH:mm:ss" + "` (e.g. `2025-12-31T00:00:00`)"
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "paidUntil updated",
-                    content = @Content(schema = @Schema(implementation = AccountDto.class))),
-            @ApiResponse(responseCode = "400", description = "Date string could not be parsed", content = @Content),
-            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content),
-            @ApiResponse(responseCode = "404", description = "Account not found", content = @Content)
-    })
-    ResponseEntity<AccountDto> updatePaidUntil(
-            @Parameter(description = "Account ID", required = true) Long id,
-            @Parameter(description = "New paidUntil value in yyyy-MM-dd'T'HH:mm:ss format", required = true,
-                    example = "2025-12-31T00:00:00") String newDate
-    );
-
     @Operation(summary = "Delete account", description = "Deletes an account by ID")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Account deleted", content = @Content),

@@ -20,15 +20,12 @@ public interface AccountRepository extends AbstractRepository<AccountEntity> {
             "WHERE id = :accountId")
     Integer setAccountAvatar(@Param("accountId") Long accountId, @Param("avatarId") Long avatarId);
 
-    @Query("SELECT paidUntil from AccountEntity " +
-            "WHERE id = :accountId")
-    LocalDateTime getPaidUntilById(Long accountId);
-
-    @Query("SELECT a FROM AccountEntity a WHERE " +
+@Query("SELECT a FROM AccountEntity a WHERE " +
             "LOWER(a.firstName)   LIKE LOWER(CONCAT('%', :q, '%')) OR " +
             "LOWER(a.secondName)  LIKE LOWER(CONCAT('%', :q, '%')) OR " +
             "LOWER(a.lastName)    LIKE LOWER(CONCAT('%', :q, '%')) OR " +
-            "LOWER(a.cardNumber)  LIKE LOWER(CONCAT('%', :q, '%'))")
+            "LOWER(a.cardNumber)  LIKE LOWER(CONCAT('%', :q, '%')) OR " +
+            "LOWER(a.phone)       LIKE LOWER(CONCAT('%', :q, '%'))")
     Page<AccountEntity> searchByQuery(@Param("q") String q, Pageable pageable);
 
     List<AccountEntity> findAllByDemoTrue();
